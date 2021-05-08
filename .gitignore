@@ -1,0 +1,12 @@
+/out
+/target
+/.idea
+/build
+/audioDictionary
+/iconDictionary
+/BackupDB
+*.txt
+*.json
+*.mf
+*.xml
+*.iml
