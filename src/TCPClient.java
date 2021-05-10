@@ -47,7 +47,7 @@ public class TCPClient {
     }
 
 
-    private void send(String msg) {
+    public void send(String msg) {
         // thay doi gui den ten nao ?
         try {
             output.writeUTF(msg);
