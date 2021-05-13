@@ -9,10 +9,11 @@ public class TCPClient {
     private Socket socket = null;
     private DataOutputStream output;
     private DataInputStream input;
+    private String name;
 
-    public TCPClient(InetAddress host) {
+    public TCPClient(InetAddress host, String name) {
         try {
-
+            this.name = name;
             socket = new Socket(host, TCPSever.SEVERPORT);
             this.output = new DataOutputStream(socket.getOutputStream());
             this.input = new DataInputStream(socket.getInputStream());
@@ -58,7 +59,7 @@ public class TCPClient {
         }
     }
 
-    private String receive() {
+    public String receive() {
         try {
             if (input == null) {
                 System.out.println("input=0");
@@ -72,7 +73,7 @@ public class TCPClient {
         return "";
     }
 
-    private void close() {
+    public void close() {
         try {
             input.close();
             socket.close();

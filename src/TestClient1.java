@@ -12,7 +12,7 @@ public class TestClient1
         {
             InetAddress ip = InetAddress.getByName("localhost");
             System.out.println (ip.toString());
-            TCPClient client1 = new TCPClient(ip);
+            TCPClient client1 = new TCPClient(ip,"b");
             client1.run();
         }
         catch (UnknownHostException e)

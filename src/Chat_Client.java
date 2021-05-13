@@ -2,23 +2,24 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Vector;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.CENTER;
 
 public class Chat_Client extends JFrame {
     private JTextArea message;
-    private JButton btnSend, btnCreate;
+    private JButton btnSend;
     private JTextArea showMsg;
     private JList<String> listClient;
     private JScrollPane scroll1, scroll2;
     private JPanel jPanel1, jPanel2;
     private JLabel title;
     private TCPClient client;
-
+    private String client_name;
 
     public Chat_Client() {
-        initComponent();
+        begin();
     }
 
     private void start() {
@@ -26,7 +27,7 @@ public class Chat_Client extends JFrame {
         {
             InetAddress ip = InetAddress.getByName("localhost");
             System.out.println (ip.toString());
-            client = new TCPClient(ip);
+            client = new TCPClient(ip,client_name);
             client.run();
         }
         catch (UnknownHostException e)
@@ -35,20 +36,47 @@ public class Chat_Client extends JFrame {
         }
     }
 
+    private void begin() {
+        //setVisible(false);
+        JFrame crClient = new JFrame();
+        crClient.setSize(250,150);
+        crClient.setResizable(false);
+        JLabel content = new JLabel("Type your name:");
+        JTextField enterName = new JTextField();
+        enterName.setSize(150,30);
+        JButton btnCreate = new JButton("Create");
+        GroupLayout gr = new GroupLayout(crClient.getContentPane());
+        crClient.getContentPane().setLayout(gr);
+        gr.setAutoCreateContainerGaps(true);
+        gr.setAutoCreateGaps(true);
+        gr.setHorizontalGroup(gr.createParallelGroup().addComponent(content).addComponent(enterName).addComponent(btnCreate));
+        gr.setVerticalGroup(gr.createSequentialGroup().addComponent(content).addComponent(enterName).addComponent(btnCreate));
+        crClient.setVisible(true);
+
+
+        btnCreate.addActionListener(e-> {
+            String n = enterName.getText();
+            //Xử lí kiểm tra tên ở đây, nếu hợp lệ thì chạy 3 câu lệnh dưới, sai thì sẽ yêu cầu nhập lại.
+
+            //nếu hợp lệ:
+            client_name = n;
+            this.setVisible(true);
+            crClient.setVisible(false);
+            initComponent();
+            //chưa hợp lệ: 2 cau lenh duoi.
+            //JOptionPane.showMessageDialog(null, "This name is available. Please enter other name!");
+            //enterName.setText("");
+        });
+    }
+
     private void initComponent() {
-        //start();
+        start();
 
         setSize(550,550);
         setResizable(false);
 
         btnSend = new JButton("Send");
-        btnSend.addActionListener(l->{
-            //Xử lí việc gửi đi tin
-             String msg = message.getText();
-             message.setText("");
-             client.send(msg);
-             showMsg.append('\n' + msg);
-        });
+
 
         message = new JTextArea();
         message.setColumns(23);
@@ -58,42 +86,11 @@ public class Chat_Client extends JFrame {
         showMsg.setColumns(30);
         showMsg.setRows(25);
 
-        // Test fram chat rieng
-        DefaultListModel<String> l1 = new DefaultListModel<>();
-        String a = "Client2";
-        l1.addElement(a);
-        listClient = new JList<>(l1);
 
         scroll1 = new JScrollPane(this.listClient);
         scroll1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         scroll1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-
-        listClient.getSelectionModel().addListSelectionListener(e -> {
-            JFrame private_chat = new JFrame();
-            private_chat.setSize(350,350);
-
-            JTextArea box_msg = new JTextArea();
-            box_msg.setEditable(false);
-            box_msg.setRows(15);
-            box_msg.setColumns(15);
-            JTextArea enterMsg = new JTextArea();
-            enterMsg.setRows(3);
-            enterMsg.setColumns(12);
-
-            JButton send = new JButton("Send");
-            JScrollPane scr1 = new JScrollPane(box_msg);
-            JScrollPane scr2 = new JScrollPane(enterMsg);
-
-            GroupLayout layout = new GroupLayout(private_chat.getContentPane());
-            private_chat.getContentPane().setLayout(layout);
-            layout.setHorizontalGroup(layout.createParallelGroup().addComponent(scr1)
-                                  .addGroup(layout.createSequentialGroup().addComponent(scr2).addGap(20).addComponent(send))
-            );
-            layout.setVerticalGroup(layout.createSequentialGroup().addComponent(scr1).addGap(10)
-                               .addGroup(layout.createParallelGroup().addComponent(scr2).addComponent(send))
-            );
-            private_chat.setVisible(true);
-        });
+        //setListClient();
 
 
         scroll2 = new JScrollPane(this.showMsg);
@@ -128,17 +125,40 @@ public class Chat_Client extends JFrame {
         layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(jPanel1,-1,150,-1).addComponent(jPanel2,-1,400,-1));
         layout.setVerticalGroup(layout.createParallelGroup(BASELINE).addComponent(jPanel2).addComponent(jPanel1));
 
+        // Cac action
+        btnSend.addActionListener(l->{
+            //Xử lí việc gửi đi tin
+            String msg = message.getText();
+            message.setText("");
+            client.send(msg);
+            showMsg.append('\n' +client_name + ":" + msg );
+        });
+           // Xử lí nhận tin từ client khác:
+        if (client.)
+
+
+
+
+
 
         setTitle("Client");
         setLocationRelativeTo(null);
+
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
     }
 
-    private void setListClient(TCPSever sever) {
-        // lấy list client từ Sever, rồi truy cập tên để thêm vào Jlist
+    private void setListClient() {
+        // lấy list client từ Sever, lấy ra tên đưa vào mảng đặt tên list_name.
+
+        //listClient.setListData(list_name);
+        listClient.setLayoutOrientation(JList.VERTICAL);
+
+
 
     }
+
+
 
     public static void main(String args[]) {
         EventQueue.invokeLater(new Runnable() {
@@ -146,7 +166,7 @@ public class Chat_Client extends JFrame {
             @Override
             public void run() {
                 Chat_Client client = new Chat_Client();
-                client.setVisible(true);
+                //client.setVisible(true);
             }
         });
     }
