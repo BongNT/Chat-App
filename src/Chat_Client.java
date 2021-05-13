@@ -133,8 +133,12 @@ public class Chat_Client extends JFrame {
             client.send(msg);
             showMsg.append('\n' +client_name + ":" + msg );
         });
-           // Xử lí nhận tin từ client khác:
-        if (client.)
+
+        /*
+           Xử lí tin nhắn đến, kiểm tra có tin nhắn đến -> append vào showMsg để hiển thị.
+           Code dưới.
+         */
+
 
 
 
