@@ -13,6 +13,7 @@ public class Chat_Client extends JFrame {
     private JButton btnSend;
     private JTextArea showMsg;
     private JList<String> listClient;
+    DefaultListModel<String> list;
     private JScrollPane scroll1, scroll2;
     private JPanel jPanel1, jPanel2;
     private JLabel title;
@@ -20,6 +21,8 @@ public class Chat_Client extends JFrame {
 
 
     public Chat_Client() {
+        list = new DefaultListModel<>();
+        listClient = new JList<>(list);
         start();
         begin();
     }
@@ -78,7 +81,6 @@ public class Chat_Client extends JFrame {
     }
 
     private void initComponent() {
-
 
         setSize(550,550);
         setResizable(false);
@@ -161,10 +163,10 @@ public class Chat_Client extends JFrame {
         client.send(Request.GETLISTNAMECLIENT.toString());
         String data = client.receive();
         String[] list_name = data.split(TCPSever.SPLITSTRING);
-        DefaultListModel<String> model = new DefaultListModel<>();
-        listClient = new JList<>(model);
+
+
         for (String s : list_name){
-            model.addElement(s);
+            list.addElement(s);
             System.out.println("list name " + s);
         }
 
