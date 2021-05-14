@@ -139,6 +139,7 @@ public class TCPSever {
                         //tim va xoa khoi sever
                         //this.isLogin = false;
                         System.out.println("sever close this client");
+                        listClient.remove(this);
                         this.close();
                         break;
                     }else if (temp[1].equals(Request.GETLISTNAMECLIENT.toString())) {

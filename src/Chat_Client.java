@@ -1,6 +1,9 @@
 import javax.swing.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.CENTER;
@@ -15,7 +18,6 @@ public class Chat_Client extends JFrame {
     private JPanel jPanel1, jPanel2;
     private JLabel title;
     private TCPClient client;
-
 
     public Chat_Client() {
         list = new DefaultListModel<>();
@@ -38,7 +40,6 @@ public class Chat_Client extends JFrame {
     }
 
     private void begin() {
-        //setVisible(false);
         JFrame crClient = new JFrame();
         crClient.setSize(250,150);
         crClient.setResizable(false);
@@ -54,31 +55,46 @@ public class Chat_Client extends JFrame {
         gr.setVerticalGroup(gr.createSequentialGroup().addComponent(content).addComponent(enterName).addComponent(btnCreate));
         crClient.setVisible(true);
 
-
         btnCreate.addActionListener(e-> {
             String n = enterName.getText();
-            //Xử lí kiểm tra tên ở đây, nếu hợp lệ thì chạy 3 câu lệnh dưới, sai thì sẽ yêu cầu nhập lại.
-            //gui ten len sever
-            client.send(n);
-            //ket qua sever tra ve
-            String data = client.receive();
-            System.out.println(data);
-            if (data.equals("true")) {
-                initComponent();
-                this.setVisible(true);
-                crClient.setVisible(false);
-                setListClient();
-                client.setName(n);
-                handleReceive();
-            } else{
-                JOptionPane.showMessageDialog(null, "This name is available. Please enter other name!");
-                enterName.setText("");
+            if (n == "") {
+                JOptionPane.showMessageDialog(null, "Please enter your name!");
+            } else {
+                //Xử lí kiểm tra tên ở đây, nếu hợp lệ thì chạy , sai thì sẽ yêu cầu nhập lại.
+                //gui ten len sever
+                client.send(n);
+                //ket qua sever tra ve
+                String data = client.receive();
+                System.out.println(data);
+                if (data.equals("true")) {
+                    crClient.setVisible(false);
+                    initComponent();
+                    this.setVisible(true);
+                    client.setName(n);
+                    handleReceive();
+                } else {
+                    JOptionPane.showMessageDialog(null, "This name is available. Please enter other name!");
+                    enterName.setText("");
+                }
             }
         });
+
+
+        crClient.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                System.out.println("xxxx");
+                client.send(client.getName());
+                client.send(Request.LOGOUT.toString());
+                client.close();
+                System.exit(0);
+            }
+        });
+
     }
 
     private void initComponent() {
-
+        setListClient();
         setSize(550,550);
         setResizable(false);
 
@@ -88,6 +104,7 @@ public class Chat_Client extends JFrame {
         message = new JTextArea();
         message.setColumns(23);
         message.setRows(3);
+        message.setEditable(true);
         showMsg = new JTextArea();
         showMsg.setEditable(false);
         showMsg.setColumns(30);
@@ -132,22 +149,38 @@ public class Chat_Client extends JFrame {
         layout.setVerticalGroup(layout.createParallelGroup(BASELINE).addComponent(jPanel2).addComponent(jPanel1));
 
         // Cac action
+
         btnSend.addActionListener(l->{
             //Xử lí việc gửi đi tin
-            String msg = message.getText();
-            message.setText("");
             //xem gui den thang nao
-            //msg = msg + TCPSever.SPLITSTRING + ten thang do
+            //msg = msg + TCPSever.SPLITSTRING + ten thang doMsg
 
-            client.send(msg);
-            showMsg.append('\n' +client.getName() + ":" + msg );
+            // gửi lên xong đồng thời lưu vào rồi load list lên luôn list thoại tương ứng giữa 2 client vì nếu đối
+            if (listClient.getSelectedIndex() != -1 && !listClient.getSelectedValue().equals(client.getName())) {
+
+                String toClient = listClient.getSelectedValue();
+                String msg = message.getText();
+                message.setText("");
+                String requestMsg = msg + Request.SPLITSTRING + toClient;
+                client.send(requestMsg);
+                showMsg.append("\n" +client.getName() + " : " + msg);
+
+
+            } else {
+                JOptionPane.showMessageDialog(null, "Please choose people in the list to send!");
+                message.setText("");
+            }
         });
+            listClient.getSelectionModel().addListSelectionListener(e-> {
+                // mk sẽ load list tin nhắn từ list thoại tương ứng lên showMsg khi chọn đối tượng chat
+                showMsg.setText(""); //ban đầu để rỗng trc nha tại chưa có cái lưu.
+            });
 
 
 
         setTitle("Client");
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        CloseWindow();
     }
     private void handleReceive() {
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
@@ -163,12 +196,20 @@ public class Chat_Client extends JFrame {
                     System.out.println(data);
                     String fromClient = data.split(Request.SPLITSTRING)[0];
                     String msg = data.split(Request.SPLITSTRING)[1];
+                    //setListClient();
                     if (msg.equals(Request.LOGOUT.toString())) {
                         //logout
                     } else if(msg.equals(Request.GETLISTNAMECLIENT.toString())) {
 
                     }else {
                         //sua day
+                        // Sửa chỗ này nhận điều kiện là chỉ có 1 cái "@".
+                       /*
+                      Cái này nhận đk msg sau đó lưu vào list thoại tương ứng.
+                       - nếu như cái fromClient = đối tượng mk đang chat thì pải load lên luôn cái list thoại.
+
+                        */
+                        showMsg.append("\n" + fromClient + " : " + msg);
                         System.out.println(fromClient +" : " + msg);
                     }
                 }
@@ -184,11 +225,26 @@ public class Chat_Client extends JFrame {
         client.send(Request.GETLISTNAMECLIENT.toString());
         String data = client.receive();
         String[] list_name = data.split(Request.SPLITSTRING);
+
         for (String s : list_name){
             list.addElement(s);
             System.out.println("list name " + s);
         }
 
+        //listClient.setListData(list_name);
+
     }
+
+    public void CloseWindow() {
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                client.send(Request.LOGOUT.toString());
+                client.close();
+                System.exit(0);
+            }
+        });
+    }
+
 
 }
