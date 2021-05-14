@@ -1,23 +1,21 @@
 // Java implementation for multithreaded chat client
 // Save file as Client.java
 
+import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
 
 public class TestClient1
 {
-    public static void main(String[] args) {
-        try
-        {
-            InetAddress ip = InetAddress.getByName("localhost");
-            System.out.println (ip.toString());
-            TCPClient client1 = new TCPClient(ip,"b");
-            client1.run();
-        }
-        catch (UnknownHostException e)
-        {
-            System.out.println("Could not find local address!");
-        }
+    public static void main(String args[]) {
+        EventQueue.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                Chat_Client client = new Chat_Client();
+                //client.setVisible(true);
+            }
+        });
     }
 }

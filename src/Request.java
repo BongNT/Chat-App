@@ -1,0 +1,5 @@
+public enum Request {
+    GETLISTNAMECLIENT,SENDMESSAGE,LOGOUT;
+}
+
+

@@ -1,19 +1,16 @@
+import java.awt.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class TestClient2 {
-    public static void main(String[] args) {
-        try
-        {
-            InetAddress ip = InetAddress.getByName("localhost");
-            System.out.println (ip.toString());
-            TCPClient client2 = new TCPClient(ip,"a");
-            client2.run();
-        }
-        catch (UnknownHostException e)
-        {
-            System.out.println("Could not find local address!");
-        }
+    public static void main(String args[]) {
+        EventQueue.invokeLater(new Runnable() {
 
+            @Override
+            public void run() {
+                Chat_Client client = new Chat_Client();
+                //client.setVisible(true);
+            }
+        });
     }
 }

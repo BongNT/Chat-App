@@ -1,9 +1,9 @@
 import javax.swing.*;
+import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Vector;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.CENTER;
@@ -17,9 +17,10 @@ public class Chat_Client extends JFrame {
     private JPanel jPanel1, jPanel2;
     private JLabel title;
     private TCPClient client;
-    private String client_name;
+
 
     public Chat_Client() {
+        start();
         begin();
     }
 
@@ -28,8 +29,8 @@ public class Chat_Client extends JFrame {
         {
             InetAddress ip = InetAddress.getByName("localhost");
             System.out.println (ip.toString());
-            client = new TCPClient(ip,client_name);
-            client.run();
+            client = new TCPClient(ip,"default");
+//            client.run();
         }
         catch (UnknownHostException e)
         {
@@ -58,39 +59,26 @@ public class Chat_Client extends JFrame {
         btnCreate.addActionListener(e-> {
             String n = enterName.getText();
             //Xử lí kiểm tra tên ở đây, nếu hợp lệ thì chạy 3 câu lệnh dưới, sai thì sẽ yêu cầu nhập lại.
-
-            int m = setListClient().size();
-            if (m == 0) {
-                client_name = n;
+            //gui ten len sever
+            client.send(n);
+            //ket qua sever tra ve
+            String data = client.receive();
+            System.out.println(data);
+            if (data.equals("true")) {
+                initComponent();
                 this.setVisible(true);
                 crClient.setVisible(false);
-                initComponent();
-            } else {
-                boolean ck = false;
-                for (int i = 0; i < m; i++) {
-                    if (setListClient().get(i).equals(n)) {
-                        ck = true;
-                        break;
-                    }
-                }
-                if(ck) {
-                    //chưa hợp lệ: 2 cau lenh duoi.
-                    JOptionPane.showMessageDialog(null, "This name is available. Please enter other name!");
-                    enterName.setText("");
-                } else {
-                    client_name = n;
-                    this.setVisible(true);
-                    crClient.setVisible(false);
-                    initComponent();
-
-                }
+                setListClient();
+                client.setName(n);
+            } else{
+                JOptionPane.showMessageDialog(null, "This name is available. Please enter other name!");
+                enterName.setText("");
             }
-
         });
     }
 
     private void initComponent() {
-        start();
+
 
         setSize(550,550);
         setResizable(false);
@@ -151,18 +139,13 @@ public class Chat_Client extends JFrame {
             String msg = message.getText();
             message.setText("");
             client.send(msg);
-            showMsg.append('\n' +client_name + ":" + msg );
+            showMsg.append('\n' +client.getName() + ":" + msg );
         });
 
         /*
            Xử lí tin nhắn đến, kiểm tra có tin nhắn đến -> append vào showMsg để hiển thị.
            Code dưới.
          */
-
-
-
-
-
 
 
         setTitle("Client");
@@ -172,32 +155,19 @@ public class Chat_Client extends JFrame {
 
     }
 
-    private ArrayList setListClient() {
+    private void setListClient() {
         // lấy list client từ Sever, lấy ra tên đưa vào mảng đặt tên list_name.
-        ArrayList<String> list_name = new ArrayList<String>();
-
-        if (listClient.getModel().getSize() != 0) {
-            for (int i = 0; i < listClient.getModel().getSize(); i++){
-                list_name.add(listClient.getModel().getElementAt(i));
-            }
-            //listClient.setListData(list_name);
-            listClient.setLayoutOrientation(JList.VERTICAL);
+        //client.send(Request.GETLISTNAMECLIENT.toString());
+        client.send(Request.GETLISTNAMECLIENT.toString());
+        String data = client.receive();
+        String[] list_name = data.split(TCPSever.SPLITSTRING);
+        DefaultListModel<String> model = new DefaultListModel<>();
+        listClient = new JList<>(model);
+        for (String s : list_name){
+            model.addElement(s);
+            System.out.println("list name " + s);
         }
 
-        return list_name;
-
     }
 
-
-
-    public static void main(String args[]) {
-        EventQueue.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                Chat_Client client = new Chat_Client();
-                //client.setVisible(true);
-            }
-        });
-    }
 }
