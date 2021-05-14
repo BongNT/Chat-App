@@ -28,9 +28,8 @@ public class TCPClient {
         Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                Scanner sc = new Scanner(System.in);
                 while (true) {
-                    String msg = sc.nextLine();
+                    String msg ="";
                     send(msg);
                 }
             }
@@ -52,11 +51,11 @@ public class TCPClient {
         // thay doi gui den ten nao ?
 
         try {
-            msg = name + TCPSever.SPLITSTRING + msg;
+            msg = name + Request.SPLITSTRING + msg;
             output.writeUTF(msg);
             // day du lieu len sever
             output.flush();
-            System.out.println("end send");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -69,6 +68,7 @@ public class TCPClient {
                 return "";
             }
             String s = input.readUTF();
+
             return s;
         } catch (IOException e) {
             e.printStackTrace();

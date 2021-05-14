@@ -1,9 +1,6 @@
 import javax.swing.*;
-import javax.swing.event.ListDataListener;
-import java.awt.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.CENTER;
@@ -25,7 +22,6 @@ public class Chat_Client extends JFrame {
         listClient = new JList<>(list);
         start();
         begin();
-        createThread();
     }
 
     private void start() {
@@ -34,7 +30,6 @@ public class Chat_Client extends JFrame {
             InetAddress ip = InetAddress.getByName("localhost");
             System.out.println (ip.toString());
             client = new TCPClient(ip,"default");
-//            client.run();
         }
         catch (UnknownHostException e)
         {
@@ -74,6 +69,7 @@ public class Chat_Client extends JFrame {
                 crClient.setVisible(false);
                 setListClient();
                 client.setName(n);
+                handleReceive();
             } else{
                 JOptionPane.showMessageDialog(null, "This name is available. Please enter other name!");
                 enterName.setText("");
@@ -121,7 +117,7 @@ public class Chat_Client extends JFrame {
         jPanel2 = new JPanel();
         GroupLayout grLayout2 = new GroupLayout(jPanel2);
         grLayout2.setHorizontalGroup(grLayout2.createParallelGroup().addComponent(scroll2)
-                                .addGroup(grLayout2.createSequentialGroup().addComponent(scroll3).addComponent(btnSend))
+                .addGroup(grLayout2.createSequentialGroup().addComponent(scroll3).addComponent(btnSend))
         );
         grLayout2.setVerticalGroup(grLayout2.createSequentialGroup().addComponent(scroll2)
                 .addGap(20)
@@ -140,24 +136,46 @@ public class Chat_Client extends JFrame {
             //Xử lí việc gửi đi tin
             String msg = message.getText();
             message.setText("");
+            //xem gui den thang nao
+            //msg = msg + TCPSever.SPLITSTRING + ten thang do
+
             client.send(msg);
             showMsg.append('\n' +client.getName() + ":" + msg );
         });
 
-        /*
-           Xử lí tin nhắn đến, kiểm tra có tin nhắn đến -> append vào showMsg để hiển thị.
-           Code dưới.
-         */
 
 
         setTitle("Client");
         setLocationRelativeTo(null);
-
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-
     }
-    private void createThread() {
+    private void handleReceive() {
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                // Simulate doing something useful.
+                while(true) {
+                    /*
+                    Xử lí tin nhắn đến, kiểm tra có tin nhắn đến -> append vào showMsg để hiển thị.
+                    Code dưới.
+                    */
+                    String data = client.receive();
+                    System.out.println(data);
+                    String fromClient = data.split(Request.SPLITSTRING)[0];
+                    String msg = data.split(Request.SPLITSTRING)[1];
+                    if (msg.equals(Request.LOGOUT.toString())) {
+                        //logout
+                    } else if(msg.equals(Request.GETLISTNAMECLIENT.toString())) {
 
+                    }else {
+                        //sua day
+                        System.out.println(fromClient +" : " + msg);
+                    }
+                }
+
+            }
+        };
+        worker.execute();
     }
 
     private void setListClient() {
@@ -165,7 +183,7 @@ public class Chat_Client extends JFrame {
         //client.send(Request.GETLISTNAMECLIENT.toString());
         client.send(Request.GETLISTNAMECLIENT.toString());
         String data = client.receive();
-        String[] list_name = data.split(TCPSever.SPLITSTRING);
+        String[] list_name = data.split(Request.SPLITSTRING);
         for (String s : list_name){
             list.addElement(s);
             System.out.println("list name " + s);

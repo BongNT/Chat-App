@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TCPSever {
-    public static final String SPLITSTRING = "@";
+
     static final int SEVERPORT = 6002;
     private ServerSocket serverSocket = null;
     private ArrayList<ClientManager> listClient = new ArrayList<>();
@@ -57,7 +57,7 @@ public class TCPSever {
             while (true) {
                 ck = false;
                 name = input.readUTF();
-                name = name.split(SPLITSTRING)[1];
+                name = name.split(Request.SPLITSTRING)[1];
                 System.out.println(name);
                 for (ClientManager c : listClient) {
                     if (c.getName().equals(name)) {
@@ -90,7 +90,7 @@ public class TCPSever {
     private void sendAllListClient() {
         String s ="";
         for (String t :getListNameClient()) {
-            s += t + SPLITSTRING;
+            s += t + Request.SPLITSTRING;
         }
         for (ClientManager c : listClient){
             if (c.isLogin) {
@@ -130,13 +130,15 @@ public class TCPSever {
         public void run() {
             while(true) {
                 String data = receive();
-                System.out.println(data);
-                String[] temp = data.split(SPLITSTRING, 2);
+                String[] temp = data.split(Request.SPLITSTRING, 2);
                 if (temp.length >=2) {
                     String fromClient = temp[0];
                     //temp[1] la phan con lai
                     if(temp[1].equals(Request.LOGOUT.toString())) {
-                        this.isLogin = false;
+                        // gui ve client tin loggout
+                        //tim va xoa khoi sever
+                        //this.isLogin = false;
+                        System.out.println("sever close this client");
                         this.close();
                         break;
                     }else if (temp[1].equals(Request.GETLISTNAMECLIENT.toString())) {
@@ -151,10 +153,10 @@ public class TCPSever {
         }
 
         private void handleSendData(String fromClient, String data) {
-            String[] a = data.split(SPLITSTRING);
+            String[] a = data.split(Request.SPLITSTRING);
             String toClient = a[1];
             String message = a[0];
-            System.out.println(fromClient+" "+toClient+" "+message);
+            System.out.println("handle" + fromClient+" "+toClient+" "+message);
             findClientToSend(fromClient, message, toClient);
         }
 
@@ -162,7 +164,8 @@ public class TCPSever {
             for (ClientManager cm : listClient){
                 if(cm.getName().equals(toClient) ) {
                     if (cm.isLogin) {
-                        cm.send(fromClient + SPLITSTRING + message);
+                        //sever send msg to client
+                        cm.send(fromClient + Request.SPLITSTRING + message);
                     } else{
                         System.out.println(cm.name + "logged out");
                     }
