@@ -25,6 +25,7 @@ public class Chat_Client extends JFrame {
         listClient = new JList<>(list);
         start();
         begin();
+        createThread();
     }
 
     private void start() {
@@ -100,7 +101,6 @@ public class Chat_Client extends JFrame {
         scroll1 = new JScrollPane(this.listClient);
         scroll1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         scroll1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        //setListClient();
 
 
         scroll2 = new JScrollPane(this.showMsg);
@@ -156,6 +156,9 @@ public class Chat_Client extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
     }
+    private void createThread() {
+
+    }
 
     private void setListClient() {
         // lấy list client từ Sever, lấy ra tên đưa vào mảng đặt tên list_name.
@@ -163,8 +166,6 @@ public class Chat_Client extends JFrame {
         client.send(Request.GETLISTNAMECLIENT.toString());
         String data = client.receive();
         String[] list_name = data.split(TCPSever.SPLITSTRING);
-
-
         for (String s : list_name){
             list.addElement(s);
             System.out.println("list name " + s);

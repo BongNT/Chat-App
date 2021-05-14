@@ -35,15 +35,14 @@ public class TCPSever {
             try {
                 System.out.println("wait socket");
                 Socket socket =  serverSocket.accept();
-                registerClient(socket);
-//                Thread thread = new Thread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//
-//                    }
-//                });
-//                System.out.println("thread");
-//                thread.start();
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        registerClient(socket);
+                    }
+                });
+                System.out.println("thread");
+                thread.start();
             } catch (IOException e) {
                 System.out.println("Sever connect unsuccessfully");
             }
@@ -55,9 +54,7 @@ public class TCPSever {
             DataInputStream input = new DataInputStream(socket.getInputStream());
             boolean ck = true;
             String name = "";
-            System.out.println("while");
             while (true) {
-                System.out.println("do");
                 ck = false;
                 name = input.readUTF();
                 name = name.split(SPLITSTRING)[1];
@@ -73,7 +70,6 @@ public class TCPSever {
                 }
                 System.out.println(listClient.size());
                 if (!ck || listClient.size() ==0) {
-                    System.out.println("sever 0");
                     output.writeUTF("true");
                     // gui du lieu cho client
                     output.flush();
@@ -85,7 +81,6 @@ public class TCPSever {
             listClient.add(cm);
             Thread thread = new Thread(cm);
             thread.start();
-            System.out.println("endwhile");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -97,7 +92,6 @@ public class TCPSever {
         for (String t :getListNameClient()) {
             s += t + SPLITSTRING;
         }
-
         for (ClientManager c : listClient){
             if (c.isLogin) {
                 c.send(s);
@@ -136,18 +130,22 @@ public class TCPSever {
         public void run() {
             while(true) {
                 String data = receive();
+                System.out.println(data);
                 String[] temp = data.split(SPLITSTRING, 2);
-                String fromClient = temp[0];
-                //temp[1] la phan con lai
-                if(temp[1].equals(Request.LOGOUT.toString())) {
-                    this.isLogin = false;
-                    this.close();
-                    break;
-                }else if (temp[1].equals(Request.GETLISTNAMECLIENT.toString())) {
-                    sendAllListClient();
+                if (temp.length >=2) {
+                    String fromClient = temp[0];
+                    //temp[1] la phan con lai
+                    if(temp[1].equals(Request.LOGOUT.toString())) {
+                        this.isLogin = false;
+                        this.close();
+                        break;
+                    }else if (temp[1].equals(Request.GETLISTNAMECLIENT.toString())) {
+                        sendAllListClient();
+                    }
+                    else{
+                        this.handleSendData(temp[0], temp[1]);
+                    }
                 }
-
-                this.handleSendData(temp[0], temp[1]);
             }
             this.close();
         }

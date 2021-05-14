@@ -68,9 +68,7 @@ public class TCPClient {
                 System.out.println("client receive error");
                 return "";
             }
-            System.out.println("begin");
             String s = input.readUTF();
-            System.out.println("end rec");
             return s;
         } catch (IOException e) {
             e.printStackTrace();
@@ -90,7 +88,6 @@ public class TCPClient {
 
     public void setName(String name) {
         this.name = name;
-        send("");
     }
 
     public String getName() {
