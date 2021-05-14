@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
@@ -58,14 +59,33 @@ public class Chat_Client extends JFrame {
             String n = enterName.getText();
             //Xử lí kiểm tra tên ở đây, nếu hợp lệ thì chạy 3 câu lệnh dưới, sai thì sẽ yêu cầu nhập lại.
 
-            //nếu hợp lệ:
-            client_name = n;
-            this.setVisible(true);
-            crClient.setVisible(false);
-            initComponent();
-            //chưa hợp lệ: 2 cau lenh duoi.
-            //JOptionPane.showMessageDialog(null, "This name is available. Please enter other name!");
-            //enterName.setText("");
+            int m = setListClient().size();
+            if (m == 0) {
+                client_name = n;
+                this.setVisible(true);
+                crClient.setVisible(false);
+                initComponent();
+            } else {
+                boolean ck = false;
+                for (int i = 0; i < m; i++) {
+                    if (setListClient().get(i).equals(n)) {
+                        ck = true;
+                        break;
+                    }
+                }
+                if(ck) {
+                    //chưa hợp lệ: 2 cau lenh duoi.
+                    JOptionPane.showMessageDialog(null, "This name is available. Please enter other name!");
+                    enterName.setText("");
+                } else {
+                    client_name = n;
+                    this.setVisible(true);
+                    crClient.setVisible(false);
+                    initComponent();
+
+                }
+            }
+
         });
     }
 
@@ -152,13 +172,19 @@ public class Chat_Client extends JFrame {
 
     }
 
-    private void setListClient() {
+    private ArrayList setListClient() {
         // lấy list client từ Sever, lấy ra tên đưa vào mảng đặt tên list_name.
+        ArrayList<String> list_name = new ArrayList<String>();
 
-        //listClient.setListData(list_name);
-        listClient.setLayoutOrientation(JList.VERTICAL);
+        if (listClient.getModel().getSize() != 0) {
+            for (int i = 0; i < listClient.getModel().getSize(); i++){
+                list_name.add(listClient.getModel().getElementAt(i));
+            }
+            //listClient.setListData(list_name);
+            listClient.setLayoutOrientation(JList.VERTICAL);
+        }
 
-
+        return list_name;
 
     }
 
