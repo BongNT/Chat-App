@@ -1,12 +1,15 @@
+import java.awt.*;
 import java.util.ArrayList;
 
 public class test {
-    public static void main(String[] args) {
-        String s = "a@b3@c";
-        String[] a = s.split("@",2);
-        System.out.println(a.length);
-        for (String x : a){
-            System.out.println(x);
-        }
+    public static void main(String args[]) {
+        EventQueue.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                Chat_Client client = new Chat_Client();
+                //client.setVisible(true);
+            }
+        });
     }
 }

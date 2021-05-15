@@ -56,6 +56,7 @@ public class TCPSever {
             while (true) {
                 ck = false;
                 name = input.readUTF();
+                System.out.println("@@@@@@@@    " +name);
                 name = name.split(Request.SPLITSTRING)[1];
                 System.out.println("register name : " + name);
                 for (ClientManager c : listClient) {
@@ -137,7 +138,7 @@ public class TCPSever {
                         //tim va xoa khoi sever
                         ClientManager deleteClient = null;
                         for (ClientManager cm : listClient){
-                            cm.send(fromClient + Request.SPLITSTRING + Request.LOGOUT);
+                            cm.send(fromClient + Request.SPLITSTRING + Request.LOGOUT.toString());
                             if(cm.getName().equals(fromClient) ) {
                                 if (cm.isLogin) {
                                     cm.isLogin = false;
