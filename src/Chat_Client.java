@@ -279,7 +279,6 @@ public class Chat_Client extends JFrame {
 
 
                     } else {
-                        //sua day
                        /*
                       Cái này nhận đk msg sau đó lưu vào list thoại tương ứng.
                        - nếu như cái fromClient = đối tượng mk đang chat thì pải load lên luôn cái list thoại.

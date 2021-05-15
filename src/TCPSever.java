@@ -212,7 +212,6 @@ public class TCPSever {
                 System.out.println("ClientManager closed unsuccessfully");
             }
         }
-
         public String getName() {
             return name;
         }
