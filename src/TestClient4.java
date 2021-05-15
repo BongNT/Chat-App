@@ -1,8 +1,7 @@
 import java.awt.*;
-import java.util.ArrayList;
 
-public class test {
-    public static void main(String args[]) {
+public class TestClient4 {
+    public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
 
             @Override

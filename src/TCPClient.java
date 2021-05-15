@@ -22,13 +22,14 @@ public class TCPClient {
             System.out.println("Client connect unsuccessfully");
         }
     }
-    public void run(){
+
+    public void run() {
 
         Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true) {
-                    String msg ="";
+                    String msg = "";
                     send(msg);
                 }
             }
@@ -67,7 +68,6 @@ public class TCPClient {
                 return "";
             }
             String s = input.readUTF();
-
             return s;
         } catch (IOException e) {
             e.printStackTrace();

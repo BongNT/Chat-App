@@ -1,9 +1,7 @@
 import java.awt.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 public class TestClient2 {
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
 
             @Override

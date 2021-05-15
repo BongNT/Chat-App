@@ -12,15 +12,15 @@ public class Chat_Client extends JFrame {
     private JTextArea message;
     private JButton btnSend;
     private JTextArea showMsg;
-    private JList<String> listClient;
+    private final JList<String> listClient;
     DefaultListModel<String> list;
     private JScrollPane scroll1, scroll2;
     private JPanel jPanel1, jPanel2;
     private JLabel title;
     private TCPClient client;
     Thread receiveThread = null;
-    private boolean isLogin =true;
-    private ArrayList<SaveData> savedData = new ArrayList<>();
+    private boolean isLogin = true;
+    private final ArrayList<SaveData> savedData = new ArrayList<>();
 
     public Chat_Client() {
         list = new DefaultListModel<>();
@@ -30,25 +30,22 @@ public class Chat_Client extends JFrame {
     }
 
     private void start() {
-        try
-        {
+        try {
             InetAddress ip = InetAddress.getByName("localhost");
-            System.out.println (ip.toString());
-            client = new TCPClient(ip,"default");
-        }
-        catch (UnknownHostException e)
-        {
+            System.out.println(ip.toString());
+            client = new TCPClient(ip, "default");
+        } catch (UnknownHostException e) {
             System.out.println("Could not find local address!");
         }
     }
 
     private void begin() {
         JFrame crClient = new JFrame();
-        crClient.setSize(250,150);
+        crClient.setSize(250, 150);
         crClient.setResizable(false);
         JLabel content = new JLabel("Type your name:");
         JTextField enterName = new JTextField();
-        enterName.setSize(150,30);
+        enterName.setSize(150, 30);
         JButton btnCreate = new JButton("Create");
         GroupLayout gr = new GroupLayout(crClient.getContentPane());
         crClient.getContentPane().setLayout(gr);
@@ -58,9 +55,9 @@ public class Chat_Client extends JFrame {
         gr.setVerticalGroup(gr.createSequentialGroup().addComponent(content).addComponent(enterName).addComponent(btnCreate));
         crClient.setVisible(true);
 
-        btnCreate.addActionListener(e-> {
+        btnCreate.addActionListener(e -> {
             String n = enterName.getText();
-            if (n.length() <1 ) {
+            if (n.length() < 1) {
                 JOptionPane.showMessageDialog(null, "Please enter your name!");
             } else {
                 //Xử lí kiểm tra tên ở đây, nếu hợp lệ thì chạy , sai thì sẽ yêu cầu nhập lại.
@@ -99,7 +96,7 @@ public class Chat_Client extends JFrame {
 
     private void initComponent() {
         setListClient();
-        setSize(550,550);
+        setSize(550, 550);
         setResizable(false);
         btnSend = new JButton("Send");
         message = new JTextArea();
@@ -127,7 +124,7 @@ public class Chat_Client extends JFrame {
         jPanel1.setLayout(grLayout1);
         grLayout1.setAutoCreateGaps(true);
         grLayout1.setAutoCreateContainerGaps(true);
-        grLayout1.setHorizontalGroup(grLayout1.createParallelGroup().addComponent(title,CENTER)
+        grLayout1.setHorizontalGroup(grLayout1.createParallelGroup().addComponent(title, CENTER)
                 .addComponent(scroll1)
         );
         grLayout1.setVerticalGroup(grLayout1.createSequentialGroup().addComponent(title).addComponent(scroll1));
@@ -146,12 +143,12 @@ public class Chat_Client extends JFrame {
         getContentPane().setLayout(layout);
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
-        layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(jPanel1,-1,150,-1).addComponent(jPanel2,-1,400,-1));
+        layout.setHorizontalGroup(layout.createSequentialGroup().addComponent(jPanel1, -1, 150, -1).addComponent(jPanel2, -1, 400, -1));
         layout.setVerticalGroup(layout.createParallelGroup(BASELINE).addComponent(jPanel2).addComponent(jPanel1));
 
         // Cac action
 
-        btnSend.addActionListener(l->{
+        btnSend.addActionListener(l -> {
             //Xử lí việc gửi đi tin
             //xem gui den thang nao
             //msg = msg + TCPSever.SPLITSTRING + ten thang doMsg
@@ -164,44 +161,35 @@ public class Chat_Client extends JFrame {
                 message.setText("");
                 String requestMsg = msg + Request.SPLITSTRING + toClient;
                 client.send(requestMsg);
-                showMsg.append("\n" +client.getName() + " : " + msg);
-                addSavedData("\n" +client.getName() + " : " + msg,toClient);
+                showMsg.append("\n" + client.getName() + " : " + msg);
+                addSavedData("\n" + client.getName() + " : " + msg, toClient);
             } else {
                 JOptionPane.showMessageDialog(null, "Please choose people in the list to send!");
                 message.setText("");
             }
         });
-        listClient.getSelectionModel().addListSelectionListener(e-> {
+        listClient.getSelectionModel().addListSelectionListener(e -> {
             // mk sẽ load list tin nhắn từ list thoại tương ứng lên showMsg khi chọn đối tượng chat
 
             String s = listClient.getSelectedValue();
-            String historyMsg = "";
-            /*
-            for (SaveData d : savedData) {
-                if (d.nameClient2.equals(s)) {
-                    for (String i : d.getListMsg()) {
-                        historyMsg += i;
-                    }
-                    break;
-                }
-            }
-            */
-            SaveData temp = new SaveData(client.getName(), s);
-            for (SaveData sd : savedData) {
-                if (temp.equalTo(sd)) {
-                    for(String i : sd.getListMsg()) {
-                        System.out.println("i : " + i);
-                        historyMsg += i;
-                    }
+            if (s != null) {
+                String historyMsg = "";
 
-                    break;
+                SaveData temp = new SaveData(client.getName(), s);
+                for (SaveData sd : savedData) {
+                    if (temp.equalTo(sd)) {
+                        for (String i : sd.getListMsg()) {
+                            System.out.println("i : " + i);
+                            historyMsg += i;
+                        }
+
+                        break;
+                    }
                 }
+                showMsg.setText(historyMsg);
             }
 
-
-            showMsg.setText(historyMsg);
         });
-
 
 
         setTitle(client.getName());
@@ -212,13 +200,12 @@ public class Chat_Client extends JFrame {
     private void addSavedData(String msg, String otherClient) {
         SaveData sd = new SaveData(client.getName(), otherClient);
         if (savedData.size() == 0) {
+            sd.add(msg);
             savedData.add(sd);
-        }else{
+        } else {
             boolean isSave = false;
             for (SaveData i : savedData) {
                 if (i.equalTo(sd)) {
-                    isSave = true;
-                    i.add(msg);
                     sd = i;
                     break;
                 }
@@ -230,27 +217,28 @@ public class Chat_Client extends JFrame {
         }
 
     }
+
     private void handleReceive() {
         receiveThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while(isLogin) {
+                while (isLogin) {
                     /*
                     Xử lí tin nhắn đến, kiểm tra có tin nhắn đến -> append vào showMsg để hiển thị.
                     Code dưới.
                     */
                     String data = client.receive();
                     System.out.println("Client receive data : " + data);
-                    if(data.length() <= 1) {
+                    if (data.length() <= 1) {
                         break;
                     }
-                    String fromClient = data.split(Request.SPLITSTRING,2)[0];
-                    String msg = data.split(Request.SPLITSTRING,2)[1];
+                    String fromClient = data.split(Request.SPLITSTRING, 2)[0];
+                    String msg = data.split(Request.SPLITSTRING, 2)[1];
                     if (msg.equals(Request.LOGOUT.toString())) {
                         //update list
                         int temp = -1;
-                        for (int i =0;i < list.size();i +=1) {
-                            if(list.getElementAt(i).equals(fromClient)) {
+                        for (int i = 0; i < list.size(); i += 1) {
+                            if (list.getElementAt(i).equals(fromClient)) {
                                 temp = i;
                                 break;
                             }
@@ -259,23 +247,21 @@ public class Chat_Client extends JFrame {
                             list.remove(temp);
                         }
 
-                        if(list.size() >0){
+                        if (list.size() > 0) {
                             listClient.setSelectedIndex(0);
                         }
 
-
-
-                    } else if(fromClient.equals(Request.GETLISTNAMECLIENT.toString())) {
+                    } else if (fromClient.equals(Request.GETLISTNAMECLIENT.toString())) {
                         System.out.println(msg);
                         System.out.println(list.toString());
                         String[] list_name = msg.split(Request.SPLITSTRING);
-                        int n =list.size();
-                        for (String s : list_name){
-                            if (!client.getName().equals(s) ){
+                        int n = list.size();
+                        for (String s : list_name) {
+                            if (!client.getName().equals(s)) {
                                 boolean ck = true;
-                                for (int i =0;i < n; i +=1) {
+                                for (int i = 0; i < n; i += 1) {
                                     if (list.getElementAt(i).equals(s)) {
-                                        ck =false;
+                                        ck = false;
                                         break;
                                     }
                                 }
@@ -284,26 +270,26 @@ public class Chat_Client extends JFrame {
                                     System.out.println("update list name " + s);
                                 }
                             }
-                            addSavedData("",s);
+                            addSavedData("", s);
                         }
 
-                        if(list.size() >0) {
+                        if (list.size() > 0) {
                             listClient.setSelectedIndex(0);
                         }
 
 
-                    }else {
+                    } else {
                         //sua day
                        /*
                       Cái này nhận đk msg sau đó lưu vào list thoại tương ứng.
                        - nếu như cái fromClient = đối tượng mk đang chat thì pải load lên luôn cái list thoại.
 
                         */
-                        if (listClient.getSelectedIndex()!= -1&&listClient.getSelectedValue().equals(fromClient)) {
+                        if (listClient.getSelectedIndex() != -1 && listClient.getSelectedValue().equals(fromClient)) {
                             showMsg.append("\n" + fromClient + " : " + msg);
                         }
-                        addSavedData("\n" + fromClient + " : " + msg,fromClient);
-                        System.out.println(fromClient +" : " + msg);
+                        addSavedData("\n" + fromClient + " : " + msg, fromClient);
+                        System.out.println(fromClient + " : " + msg);
                     }
 
                 }
@@ -321,14 +307,14 @@ public class Chat_Client extends JFrame {
         String data = client.receive().split(Request.SPLITSTRING, 2)[1];
         String[] list_name = data.split(Request.SPLITSTRING);
 
-        for (String s : list_name){
-            if (!client.getName().equals(s)){
+        for (String s : list_name) {
+            if (!client.getName().equals(s)) {
                 list.addElement(s);
                 System.out.println("list name " + s);
             }
         }
 
-        if(list.size() >0){
+        if (list.size() > 0) {
             listClient.setSelectedIndex(0);
         }
     }
@@ -345,18 +331,22 @@ public class Chat_Client extends JFrame {
             }
         });
     }
-    private class SaveData{
+
+    private class SaveData {
         private String nameClient1 = "";
         private String nameClient2 = "";
         private String msg;
-        public SaveData(String nameClient1, String nameClient2){
+
+        public SaveData(String nameClient1, String nameClient2) {
             this.nameClient1 = nameClient1;
             this.nameClient2 = nameClient2;
             msg = "";
         }
+
         public void add(String s) {
             msg += s + Request.SPLITSTRING;
         }
+
         public String[] getListMsg() {
             return msg.split(Request.SPLITSTRING);
         }
@@ -371,12 +361,8 @@ public class Chat_Client extends JFrame {
 
         public boolean equalTo(SaveData o) {
             if (o == null) return false;
-            if ((nameClient1.equals(o.nameClient1) && nameClient2.equals(o.nameClient2))
-                    ||(nameClient1.equals(o.nameClient2) && nameClient2.equals(o.nameClient1))) {
-                return true;
-            } else {
-                return false;
-            }
+            return (nameClient1.equals(o.nameClient1) && nameClient2.equals(o.nameClient2))
+                    || (nameClient1.equals(o.nameClient2) && nameClient2.equals(o.nameClient1));
         }
 
 
