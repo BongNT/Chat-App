@@ -3,7 +3,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.CENTER;
@@ -18,6 +17,8 @@ public class Chat_Client extends JFrame {
     private JPanel jPanel1, jPanel2;
     private JLabel title;
     private TCPClient client;
+    Thread receiveThread = null;
+    private boolean isLogin =true;
 
     public Chat_Client() {
         list = new DefaultListModel<>();
@@ -97,10 +98,7 @@ public class Chat_Client extends JFrame {
         setListClient();
         setSize(550,550);
         setResizable(false);
-
         btnSend = new JButton("Send");
-
-
         message = new JTextArea();
         message.setColumns(23);
         message.setRows(3);
@@ -171,10 +169,10 @@ public class Chat_Client extends JFrame {
                 message.setText("");
             }
         });
-            listClient.getSelectionModel().addListSelectionListener(e-> {
-                // mk sẽ load list tin nhắn từ list thoại tương ứng lên showMsg khi chọn đối tượng chat
-                showMsg.setText(""); //ban đầu để rỗng trc nha tại chưa có cái lưu.
-            });
+        listClient.getSelectionModel().addListSelectionListener(e-> {
+            // mk sẽ load list tin nhắn từ list thoại tương ứng lên showMsg khi chọn đối tượng chat
+            showMsg.setText(""); //ban đầu để rỗng trc nha tại chưa có cái lưu.
+        });
 
 
 
@@ -183,24 +181,43 @@ public class Chat_Client extends JFrame {
         CloseWindow();
     }
     private void handleReceive() {
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+        receiveThread = new Thread(new Runnable() {
             @Override
-            protected Void doInBackground() throws Exception {
-                // Simulate doing something useful.
-                while(true) {
+            public void run() {
+                while(isLogin) {
                     /*
                     Xử lí tin nhắn đến, kiểm tra có tin nhắn đến -> append vào showMsg để hiển thị.
                     Code dưới.
                     */
                     String data = client.receive();
-                    System.out.println(data);
-                    String fromClient = data.split(Request.SPLITSTRING)[0];
-                    String msg = data.split(Request.SPLITSTRING)[1];
+                    System.out.println("Client receive data : " + data);
+                    if(data.length() <= 1) {
+                        break;
+                    }
+                    String fromClient = data.split(Request.SPLITSTRING,2)[0];
+                    String msg = data.split(Request.SPLITSTRING,2)[1];
                     //setListClient();
                     if (msg.equals(Request.LOGOUT.toString())) {
-                        //logout
-                    } else if(msg.equals(Request.GETLISTNAMECLIENT.toString())) {
+                        //update list
+                        int temp = -1;
+                        for (int i =0;i < list.size();i +=1) {
+                            if(list.getElementAt(i).equals(fromClient)) {
+                                temp = i;
+                                break;
+                            }
+                        }
+                        if (temp != -1) {
+                            list.remove(temp);
+                        }
 
+                    } else if(fromClient.equals(Request.GETLISTNAMECLIENT.toString())) {
+                        System.out.println(msg);
+                        String[] list_name = msg.split(Request.SPLITSTRING);
+                        list.removeAllElements();
+                        for (String s : list_name){
+                            list.addElement(s);
+                            System.out.println("updata list name " + s);
+                        }
                     }else {
                         //sua day
                         // Sửa chỗ này nhận điều kiện là chỉ có 1 cái "@".
@@ -213,17 +230,18 @@ public class Chat_Client extends JFrame {
                         System.out.println(fromClient +" : " + msg);
                     }
                 }
-
             }
-        };
-        worker.execute();
+        });
+        receiveThread.start();
+
     }
+
 
     private void setListClient() {
         // lấy list client từ Sever, lấy ra tên đưa vào mảng đặt tên list_name.
         //client.send(Request.GETLISTNAMECLIENT.toString());
         client.send(Request.GETLISTNAMECLIENT.toString());
-        String data = client.receive();
+        String data = client.receive().split(Request.SPLITSTRING, 2)[1];
         String[] list_name = data.split(Request.SPLITSTRING);
 
         for (String s : list_name){
@@ -239,6 +257,8 @@ public class Chat_Client extends JFrame {
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                isLogin = false;
+                receiveThread.stop();
                 client.send(Request.LOGOUT.toString());
                 client.close();
                 System.exit(0);

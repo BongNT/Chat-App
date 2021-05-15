@@ -41,7 +41,6 @@ public class TCPSever {
                         registerClient(socket);
                     }
                 });
-                System.out.println("thread");
                 thread.start();
             } catch (IOException e) {
                 System.out.println("Sever connect unsuccessfully");
@@ -58,7 +57,7 @@ public class TCPSever {
                 ck = false;
                 name = input.readUTF();
                 name = name.split(Request.SPLITSTRING)[1];
-                System.out.println(name);
+                System.out.println("register name : " + name);
                 for (ClientManager c : listClient) {
                     if (c.getName().equals(name)) {
                         output.writeUTF("false");
@@ -68,7 +67,6 @@ public class TCPSever {
                         break;
                     }
                 }
-                System.out.println(listClient.size());
                 if (!ck || listClient.size() ==0) {
                     output.writeUTF("true");
                     // gui du lieu cho client
@@ -77,6 +75,7 @@ public class TCPSever {
                 }
             }
             System.out.println("New client request received : " + socket);
+            System.out.println("Sever has "+listClient.size() + " connecting clients");
             ClientManager cm = new ClientManager(socket, name);
             listClient.add(cm);
             Thread thread = new Thread(cm);
@@ -84,11 +83,10 @@ public class TCPSever {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private void sendAllListClient() {
-        String s ="";
+        String s =Request.GETLISTNAMECLIENT.toString() + Request.SPLITSTRING;
         for (String t :getListNameClient()) {
             s += t + Request.SPLITSTRING;
         }
@@ -137,10 +135,22 @@ public class TCPSever {
                     if(temp[1].equals(Request.LOGOUT.toString())) {
                         // gui ve client tin loggout
                         //tim va xoa khoi sever
-                        //this.isLogin = false;
+                        ClientManager deleteClient = null;
+                        for (ClientManager cm : listClient){
+                            cm.send(fromClient + Request.SPLITSTRING + Request.LOGOUT);
+                            if(cm.getName().equals(fromClient) ) {
+                                if (cm.isLogin) {
+                                    cm.isLogin = false;
+                                    deleteClient = cm;
+                                } else{
+                                    System.out.println(cm.name + "logged out");
+                                }
+                            }
+                        }
+                        deleteClient.close();
+                        listClient.remove(deleteClient);
                         System.out.println("sever close this client");
-                        listClient.remove(this);
-                        this.close();
+                        System.out.println(listClient.size());
                         break;
                     }else if (temp[1].equals(Request.GETLISTNAMECLIENT.toString())) {
                         sendAllListClient();
@@ -150,7 +160,7 @@ public class TCPSever {
                     }
                 }
             }
-            this.close();
+            //this.close();
         }
 
         private void handleSendData(String fromClient, String data) {
