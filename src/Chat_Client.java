@@ -165,8 +165,7 @@ public class Chat_Client extends JFrame {
                 String requestMsg = msg + Request.SPLITSTRING + toClient;
                 client.send(requestMsg);
                 showMsg.append("\n" +client.getName() + " : " + msg);
-                addSavedData("\n" +client.getName() + " : " + msg);
-
+                addSavedData("\n" +client.getName() + " : " + msg,toClient);
             } else {
                 JOptionPane.showMessageDialog(null, "Please choose people in the list to send!");
                 message.setText("");
@@ -174,40 +173,62 @@ public class Chat_Client extends JFrame {
         });
         listClient.getSelectionModel().addListSelectionListener(e-> {
             // mk sẽ load list tin nhắn từ list thoại tương ứng lên showMsg khi chọn đối tượng chat
-            showMsg.setText("");
+
             String s = listClient.getSelectedValue();
+            String historyMsg = "";
+            /*
+            for (SaveData d : savedData) {
+                if (d.nameClient2.equals(s)) {
+                    for (String i : d.getListMsg()) {
+                        historyMsg += i;
+                    }
+                    break;
+                }
+            }
+            */
             SaveData temp = new SaveData(client.getName(), s);
             for (SaveData sd : savedData) {
                 if (temp.equalTo(sd)) {
                     for(String i : sd.getListMsg()) {
                         System.out.println("i : " + i);
-                        showMsg.append(i);
+                        historyMsg += i;
                     }
+
                     break;
                 }
             }
+
+
+            showMsg.setText(historyMsg);
         });
 
 
 
-        setTitle("Client");
+        setTitle(client.getName());
         setLocationRelativeTo(null);
         CloseWindow();
     }
 
-    private void addSavedData(String msg) {
-        SaveData sd = new SaveData(client.getName(), listClient.getSelectedValue());
+    private void addSavedData(String msg, String otherClient) {
+        SaveData sd = new SaveData(client.getName(), otherClient);
         if (savedData.size() == 0) {
             savedData.add(sd);
         }else{
+            boolean isSave = false;
             for (SaveData i : savedData) {
                 if (i.equalTo(sd)) {
+                    isSave = true;
+                    i.add(msg);
                     sd = i;
                     break;
                 }
             }
+            if (isSave == false) {
+                sd.add(msg);
+                savedData.add(sd);
+            }
         }
-        sd.add(msg);
+
     }
     private void handleReceive() {
         receiveThread = new Thread(new Runnable() {
@@ -237,9 +258,12 @@ public class Chat_Client extends JFrame {
                         if (temp != -1) {
                             list.remove(temp);
                         }
+
                         if(list.size() >0){
                             listClient.setSelectedIndex(0);
                         }
+
+
 
                     } else if(fromClient.equals(Request.GETLISTNAMECLIENT.toString())) {
                         System.out.println(msg);
@@ -257,26 +281,31 @@ public class Chat_Client extends JFrame {
                                 }
                                 if (ck) {
                                     list.addElement(s);
-                                    System.out.println("updata list name " + s);
+                                    System.out.println("update list name " + s);
                                 }
                             }
+                            addSavedData("",s);
                         }
-                        if(list.size() >0){
+
+                        if(list.size() >0) {
                             listClient.setSelectedIndex(0);
                         }
+
+
                     }else {
                         //sua day
-                        // Sửa chỗ này nhận điều kiện là chỉ có 1 cái "@".
                        /*
                       Cái này nhận đk msg sau đó lưu vào list thoại tương ứng.
                        - nếu như cái fromClient = đối tượng mk đang chat thì pải load lên luôn cái list thoại.
 
                         */
-                        addSavedData("\n" + fromClient + " : " + msg);
-                        showMsg.append("\n" + fromClient + " : " + msg);
-
+                        if (listClient.getSelectedIndex()!= -1&&listClient.getSelectedValue().equals(fromClient)) {
+                            showMsg.append("\n" + fromClient + " : " + msg);
+                        }
+                        addSavedData("\n" + fromClient + " : " + msg,fromClient);
                         System.out.println(fromClient +" : " + msg);
                     }
+
                 }
             }
         });
@@ -298,11 +327,10 @@ public class Chat_Client extends JFrame {
                 System.out.println("list name " + s);
             }
         }
+
         if(list.size() >0){
             listClient.setSelectedIndex(0);
         }
-
-
     }
 
     public void CloseWindow() {
